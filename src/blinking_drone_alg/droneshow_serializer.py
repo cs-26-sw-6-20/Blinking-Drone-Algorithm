@@ -16,7 +16,7 @@ class DronePoint:
     g: int
     b: int
 
-class DroneParser:
+class DroneshowParser:
     logger = logging.getLogger(__name__)
 
     @classmethod
@@ -49,4 +49,4 @@ class DroneParser:
         cls.logger.info("unzipped to", extract_to)
 
         drone_csv_list = list(Path(extract_to).rglob("*.csv"))
-        return [DroneParser.load_csv(csv_path) for csv_path in drone_csv_list]
+        return [DroneshowParser.load_csv(csv_path) for csv_path in drone_csv_list]
