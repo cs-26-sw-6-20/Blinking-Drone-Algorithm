@@ -1,5 +1,7 @@
 import csv
 from dataclasses import dataclass
+import zipfile
+import tempfile
 
 
 @dataclass
@@ -34,3 +36,12 @@ class DroneParser:
 
         return drone_series
 
+    @staticmethod
+    def load_droneshow_from_archive(zip_path: str) -> list[list[DronePoint]]:
+        extract_to = tempfile.mkdtemp(prefix="droneshow_")
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_to)
+        print("unzipped to", extract_to)
+
+        list_of_files = [] # TODO
+        return [DroneParser.load_csv(csv_path) for csv_path in list_of_files]
