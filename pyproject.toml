@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "blinking-drone-algorithm"
+description = "An implementation of our Droneshow optimization algorithim"
+readme = "README.md"
+version = "0.1.0"
+
+maintainers = [
+    { name = "CS-26-SW-6-20", email = "cs-26-sw-6-20@student.aau.dk" }
+]
+
+authors = [
+    { name = "Kresten", email = "kscker23@student.aau.dk" },
+    { name = "Visvaa" },
+    { name = "Ali" },
+    { name = "Amalie" },
+]
+
+classifiers = [
+    "Development Status :: 3 - Alpha",
+
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
+]
+
+requires-python = ">= 3.10"
+
+dependencies = [
+]
