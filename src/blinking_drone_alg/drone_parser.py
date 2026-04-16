@@ -2,6 +2,8 @@ import csv
 from dataclasses import dataclass
 import zipfile
 import tempfile
+from pathlib import Path
+import logging
 
 
 @dataclass
@@ -15,11 +17,14 @@ class DronePoint:
     b: int
 
 class DroneParser:
-    @staticmethod
-    def load_csv(file_path: str) -> list[DronePoint]:
+    logger = logging.getLogger(__name__)
+
+    @classmethod
+    def load_csv(cls, file_path: Path | str) -> list[DronePoint]:
         drone_series = []
         with open(file_path, newline="") as f:
             reader = csv.DictReader(f)
+            cls.logger.info("loaded csv", file_path)
 
             for row in reader:
                 drone_series.append(
@@ -36,12 +41,12 @@ class DroneParser:
 
         return drone_series
 
-    @staticmethod
-    def load_droneshow_from_archive(zip_path: str) -> list[list[DronePoint]]:
+    @classmethod
+    def load_droneshow_from_archive(cls, zip_path: Path | str) -> list[list[DronePoint]]:
         extract_to = tempfile.mkdtemp(prefix="droneshow_")
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(extract_to)
-        print("unzipped to", extract_to)
+        cls.logger.info("unzipped to", extract_to)
 
-        list_of_files = [] # TODO
-        return [DroneParser.load_csv(csv_path) for csv_path in list_of_files]
+        drone_csv_list = list(Path(extract_to).rglob("*.csv"))
+        return [DroneParser.load_csv(csv_path) for csv_path in drone_csv_list]
