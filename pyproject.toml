@@ -32,4 +32,5 @@ classifiers = [
 requires-python = ">= 3.10"
 
 dependencies = [
+    "pytest>=9.0.3",
 ]
