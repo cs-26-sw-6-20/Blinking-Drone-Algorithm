@@ -8,7 +8,7 @@ import logging
 
 @dataclass
 class DronePoint:
-    time_ms: int
+    time_ms: float
     x: float
     y: float
     z: float
