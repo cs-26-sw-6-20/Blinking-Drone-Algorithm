@@ -27,9 +27,7 @@ class TestDroneParsing:
         """
         fixture_path = (Path(__file__).parent / 'fixtures' / 'demo_single_drone.csv').as_posix()
         drone_series = DroneParser.load_csv(fixture_path)
-        times = [float(r[0]) for r in drone_series]
+        times = [r.time_ms for r in drone_series]
         assert times[0] == 0.0
         assert times[-1] == 10250.0
         assert times == sorted(times)
-    
-        pass
