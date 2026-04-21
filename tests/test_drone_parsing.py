@@ -1,4 +1,3 @@
-import pytest
 from pathlib import Path
 
 from blinking_drone_alg.droneshow_serializer import DroneshowParser
@@ -26,7 +25,7 @@ class TestDroneParsing:
         Validate that the rows are sequential in the list.
         """
         fixture_path = (Path(__file__).parent / 'fixtures' / 'demo_single_drone.csv').as_posix()
-        drone_series = DroneParser.load_csv(fixture_path)
+        drone_series = DroneshowParser.load_csv(fixture_path)
         times = [r.time_ms for r in drone_series]
         assert times[0] == 0.0
         assert times[-1] == 10250.0
