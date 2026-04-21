@@ -1,0 +1,36 @@
+Metadata-Version: 2.4
+Name: blinking-drone-algorithm
+Version: 0.1.0
+Summary: An implementation of our Droneshow optimization algorithim
+Author: Visvaa, Ali, Amalie
+Author-email: Kresten <kscker23@student.aau.dk>
+Maintainer-email: CS-26-SW-6-20 <cs-26-sw-6-20@student.aau.dk>
+Classifier: Development Status :: 3 - Alpha
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: 3 :: Only
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+Requires-Dist: pytest>=9.0.3; extra == "dev"
+Requires-Dist: mypy>=1.1.1; extra == "dev"
+
+# Blinking-Drone-Algorithm
+
+## Development
+
+### Tests
+
+Install pytest in your environment: `pip install pytest`
+
+
+To make Pytest successfully import the library, it has to be installed locally in editable mode.
+
+`pip install --editable .`
+
+
+You should now be able to run Pytest
+
+`pytest` (for some installations you may need to explicitly lookup the module `python -m pytest`)

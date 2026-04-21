@@ -16,6 +16,13 @@ class DronePoint:
     g: int
     b: int
 
+    def get_location(self) -> tuple[float, float, float]:
+        return (self.x, self.y, self.z)
+
+    def get_time_sec(self) -> float:
+        return self.time_ms / 1000.0
+
+
 class DroneshowParser:
     logger = logging.getLogger(__name__)
 
