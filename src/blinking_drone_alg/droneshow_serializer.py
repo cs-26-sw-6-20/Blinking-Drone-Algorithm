@@ -5,9 +5,10 @@ import tempfile
 from pathlib import Path
 import logging
 
+from mixins import WithMixin
 
 @dataclass
-class DronePoint:
+class DronePoint(WithMixin):
     time_ms: int
     x: float
     y: float

@@ -1,12 +1,11 @@
 import logging
 from dataclasses import dataclass
 
-from mixins import WithMixin
 from blinking_drone_alg.droneshow_serializer import DronePoint
 
 
 @dataclass
-class DronePointFlaggable(WithMixin, DronePoint):
+class DronePointFlaggable(DronePoint):
     flag: bool = False
 
 
