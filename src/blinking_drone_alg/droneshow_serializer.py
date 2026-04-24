@@ -58,3 +58,15 @@ class DroneshowParser:
 
         drone_csv_list = list(Path(extract_to).rglob("*.csv"))
         return [DroneshowParser.load_csv(csv_path) for csv_path in drone_csv_list]
+
+
+class DroneshowGenerator:
+    logger = logging.getLogger(__name__)
+
+    @classmethod
+    def save_csv(cls, drone: DronePoint, file_path: Path | str) -> None:
+        pass
+
+    @classmethod
+    def save_droneshow_to_archive(cls, droneshow: list[list[DronePoint]], zip_path: Path | str) -> None:
+        pass
