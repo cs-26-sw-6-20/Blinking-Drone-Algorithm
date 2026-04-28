@@ -30,7 +30,6 @@ class DroneshowModifier:
 
     @classmethod
     def flag_droneshow(cls, droneshow: list[list[DronePoint]]) -> list[list[DronePointFlaggable]]:
-
         pass
        
 
