@@ -5,11 +5,11 @@ from turtle import distance
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
+from blinking_drone_alg import math_utils
 from blinking_drone_alg.droneshow_serializer import DronePoint
 from blinking_drone_alg.constants import MAX_ALLOWED_DISTANCE, BIG_NUMBER
 from blinking_drone_alg.math_utils import distance 
 
-from src.blinking_drone_alg import math_utils
 
 
 @dataclass
@@ -61,12 +61,8 @@ class DroneshowModifier:
 
     @classmethod
     def DistCalc(cls, flag: list[DronePointFlaggable] , avail: list[DronePointFlaggable],  time_index: int) -> float: 
-        
-        print("Time index:", time_index)
         for i in range(time_index):
-            print("Din")
             if avail[time_index-i] != None:
-                print("Mor")
                 total_distance = distance(flag[i].get_location(), avail[time_index-i].get_location())
                 diff = i * MAX_ALLOWED_DISTANCE
                 return total_distance - diff
@@ -78,43 +74,62 @@ class DroneshowModifier:
         
         M_distance: list[list[float]] = []
 
-        for i in range(len(flaggedDrones)):
+        flagListLength = len(flaggedDrones)
+        availableDrones = []
+        i = 0
+        while i < flagListLength:
             M_distance.append([BIG_NUMBER for _ in range(len(drones))])
             for j in range(len(drones)):
-                    distance = DroneshowModifier.DistCalc(drones[flaggedDrones[i]], drones[j], time_index)
-                    if distance <= MAX_ALLOWED_DISTANCE:
-                        if(j not in flaggedDrones):
-                            flaggedDrones.append(j)
-                        print(distance)
-                        M_distance[i][j]  = distance
-                    else:
-                        M_distance[i][j]  = BIG_NUMBER
+                if(j not in availableDrones):
+                    availableDrones.append(j)
 
+                distance = DroneshowModifier.DistCalc(drones[flaggedDrones[i]], drones[j], time_index)
+                if distance <= MAX_ALLOWED_DISTANCE:
+                    if(j not in flaggedDrones):
+                        flaggedDrones.append(j)
+                        flagListLength += 1
+                    print(distance)
+                    M_distance[i][j]  = distance
+                else:
+                    M_distance[i][j]  = BIG_NUMBER
+            i +=1     
 
-        print("Initial Distance Matrix:", M_distance)
-        for i in range(len(M_distance)): # drones
-            for j in range(len(distance[0])): # flags
+       
+        getDeleted = []
+        skip = False
+
+        print("M_distance", len(M_distance))
+        print("M_distance[0]", len(M_distance[0]))
+
+        for i in range(len(M_distance[0])): # drone
+            skip = False
+            for j in range(len(M_distance)): # flag
                 if M_distance[j][i] != BIG_NUMBER:
+                    skip = True
                     break
-                
-            M_distance = np.array(M_distance)
-            M_distance = np.delete(M_distance, i, 1)
+            if (skip != True): 
+                getDeleted.append(availableDrones[i])
+            
+        M_distance = np.array(M_distance)
+             
+        for i in range(len(getDeleted), 0,-1):
+            M_distance = np.delete(M_distance, getDeleted[i-1], 1)
 
-        print("Distance Matrix:", M_distance)
+            availableDrones.pop(getDeleted[i-1])  
+        
         matDiff = len(M_distance) - len(M_distance[flaggedDrones[0]])
 
         if matDiff < 0: #more drones than flags
             for i in range(len(M_distance)+1,len(M_distance[0])):
-                for j in range(len(M_distance[0])):
-                    M_distance[i][j] = BIG_NUMBER
+                np.append(M_distance, [BIG_NUMBER for _ in range(len(M_distance[0]))])
 
         elif matDiff > 0: #more flags than drones
-            for i in range(len(M_distance[0])+1,len(M_distance)):
-                DroneshowModifier.CreateNewDrone()
+            for i in range(len(M_distance[0])+1,len(M_distance)): # ---------------------------------------------------- fix squareness of matrix
+                availableDrones.append(DroneshowModifier.CreateNewDrone())
+                
                 for j in range(len(M_distance)):
                     M_distance[j][i] = 0
-
-        return M_distance
+        return M_distance, availableDrones
         
     @classmethod 
     def MinimumColValue(cls, distance_matrix: list[list[float]]) -> list[float]:
@@ -125,7 +140,6 @@ class DroneshowModifier:
 
     @classmethod # er distance_matrix en liste eller et array? (se linje 75)
     def HungarianALG(cls, distance_matrix: list[list[float]]) -> list[tuple[int, int]]: 
-        
         cost_matrix = np.array(distance_matrix)
         row_ind, col_ind = linear_sum_assignment(cost_matrix)
 
@@ -135,23 +149,38 @@ class DroneshowModifier:
         
 
     @classmethod
-    def CheckSolution(cls, sol: list[tuple[int, int]],  minColVal: list[float], flags: list[int]) -> list[tuple[int, int]]:
+    def CheckSolution(cls, sol: list[tuple[int, int]],  minColVal: list[float], available: list[int], flags: list[int]) -> list[tuple[int, int]]:
+        print("minimum column value:", minColVal)
+        print("solution", sol)
+        print("flags", flags)
+        print("avail", available)
+
+        checkedSol: list[tuple[int,int]] = []
+
+        for i in range(len(sol)):
+            checkedSol.append((available[sol[i][0]],flags[sol[i][1]]))
+
         for i in range(len(flags)):
             if minColVal[i] == BIG_NUMBER:
-                sol[i] = (DroneshowModifier.CreateNewDrone(),flags[i])
-        return sol
+                newDroneIndex = DroneshowModifier.CreateNewDrone()
+                sol[i] = (newDroneIndex,flags[i]) 
+                available.append(newDroneIndex)
+
+        print("checked solution", checkedSol)
+        return checkedSol
     
     @classmethod
     def UpdateMatrix(cls, M_Drones: list[list[DronePointFlaggable]], checkedSol: list[tuple[int, int]] , time_index: int) -> list[list[DronePointFlaggable]]:
-        copies = []
         
         for pair in checkedSol:
-            copies.append(copy.copy(pair[1])) # copy all flag-values
-
-            insert_drone = copies[pair[0]]
-
+            insert_drone = pair[0]
             for i in range(time_index, len(M_Drones[0])):
-                M_Drones[pair[1]][i] = insert_drone[i] 
+                print("insert drone", insert_drone)
+                print("i", i)
+                print("pair", pair)
+                print("pair0", pair[0])
+                print("pair1", pair[1])
+                M_Drones[pair[1]][i] = insert_drone
                 M_Drones[pair[0]][i] = None
         
         return M_Drones
@@ -212,7 +241,6 @@ class DroneshowModifier:
     def not_main(cls, M_Drones: list[list[DronePointFlaggable]]) -> list[list[DronePointFlaggable]]:
         # Create time x Drone Matrix with flags
 
-
         for i in range(len(M_Drones[0])):
             flaggedDrones = []
             for j in range(len(M_Drones)):
@@ -224,13 +252,13 @@ class DroneshowModifier:
             print("Flagged Drones:", flaggedDrones)
             print("time:", i)
             
-            MDistance = DroneshowModifier.DistanceMatrix(M_Drones, flaggedDrones, i)
-            minColVal = DroneshowModifier.MinimumColValue(MDistance)
-            sol = DroneshowModifier.HungarianALG(MDistance)
-            checkedSol = DroneshowModifier.CheckSolution(sol, minColVal, flaggedDrones) 
-            MDrones = DroneshowModifier.UpdateMatrix(MDrones, checkedSol, i)
-        MDrones = DroneshowModifier.FillMatrix(MDrones)
-        return MDrones
+            M_DistanceAndAvailDrones = DroneshowModifier.DistanceMatrix(M_Drones, flaggedDrones, i)
+            minColVal = DroneshowModifier.MinimumColValue(M_DistanceAndAvailDrones[0])
+            sol = DroneshowModifier.HungarianALG(M_DistanceAndAvailDrones[0])
+            checkedSol = DroneshowModifier.CheckSolution(sol, minColVal, M_DistanceAndAvailDrones[1], flaggedDrones) 
+            M_Drones = DroneshowModifier.UpdateMatrix(M_Drones, checkedSol, i)
+        M_Drones = DroneshowModifier.FillMatrix(M_Drones)
+        return M_Drones
         # Make MDrones into CSV files
         # Count amount of drones
         # Return CSV files and global drone counter value

@@ -36,7 +36,7 @@ def avail_drone_all_none():
 
 class TestDistCalc:
     def test_dist_calc(self):
-       result =  DronePointFlaggable.distCalc(flag_drone(), available_drone_close(), 2)
+       result =  DroneshowModifier.distCalc(flag_drone(), available_drone_close(), 2)
        assert result == sqrt(27) 
 
   
