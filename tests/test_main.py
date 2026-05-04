@@ -56,6 +56,6 @@ class TestMain:
         result = DroneshowModifier.not_main(input)
 
         assert result is not None
-
         assert len(result) == len(output)
+        
         

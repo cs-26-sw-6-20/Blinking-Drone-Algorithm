@@ -36,7 +36,7 @@ def main():
     DronePointFlaggable(time_ms=750, x=5.5, y=5.0, z=0.0, r=3, g=3, b=3, flag=False)],
 ]
     
-    DroneshowModifier.not_main(m)
+    print(DroneshowModifier.not_main(m))
 
 
 
