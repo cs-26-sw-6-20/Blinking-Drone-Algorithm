@@ -72,12 +72,15 @@ class DroneshowModifier:
     @classmethod
     def DistCalc(cls, flag: list[DronePointFlaggable] , avail: list[DronePointFlaggable],  time_index: int) -> float: 
         for i in range(time_index):
-            if avail[time_index-i] != None:
+            if avail[time_index-i-1] != None:
                
-                total_distance = distance(flag[i].get_location(), avail[time_index-i].get_location())
+                total_distance = distance(flag[time_index].get_location(), avail[time_index-i-1].get_location())
                 diff = i * MAX_ALLOWED_DISTANCE
                 
-                return total_distance - diff
+                if (total_distance - diff) < 0:
+                    return 0
+                else:
+                    return total_distance - diff
         return 0    
         
 
@@ -97,7 +100,7 @@ class DroneshowModifier:
                
                 distance = DroneshowModifier.DistCalc(drones[flaggedDrones[i]], drones[j], time_index)
                 if distance <= MAX_ALLOWED_DISTANCE:
-                    if(j not in flaggedDrones):
+                    if(j not in flaggedDrones and drones[j][time_index] is not None):
                         flaggedDrones.append(j)
                         flagListLength += 1
                     M_distance[i][j]  = distance
@@ -141,12 +144,6 @@ class DroneshowModifier:
         
         return M_distance, availableDrones
         
-    @classmethod 
-    def MinimumRowValue(cls, distance_matrix: list[list[float]]) -> list[float]:
-        distance_matrix = np.array(distance_matrix)
-        return np.min(distance_matrix, axis=1) # axis 0 is row
-
-
 
     @classmethod # er distance_matrix en liste eller et array? (se linje 75)
     def HungarianALG(cls, distance_matrix: list[list[float]]) -> list[tuple[int, int]]: 
@@ -158,15 +155,15 @@ class DroneshowModifier:
       
 
     @classmethod
-    def CheckSolution(cls, sol: list[tuple[int, int]],  minColVal: list[float], available: list[int], flags: list[int]) -> list[tuple[int, int]]:
+    def CheckSolution(cls, sol: list[tuple[int, int]],  M_Distance: list[list[float]], available: list[int], flags: list[int]) -> list[tuple[int, int]]:
 
         checkedSol: list[tuple[int,int]] = []
 
         for i in range(len(sol)):
             checkedSol.append((available[sol[i][1]],flags[sol[i][0]]))
 
-        for i in range(len(flags)):
-            if minColVal[i] == BIG_NUMBER:
+        for i in range(len(flags)): #TODO: hvad fuck foregår der??
+            if M_Distance[sol[i][0]][sol[i][1]] == BIG_NUMBER:
                 newDroneIndex = DroneshowModifier.CreateNewDrone()
                 sol[i] = (newDroneIndex,flags[i]) 
                 available.append(newDroneIndex)
@@ -261,9 +258,8 @@ class DroneshowModifier:
                 continue
             
             M_DistanceAndAvailDrones = DroneshowModifier.DistanceMatrix(M_Drones, flaggedDrones, i)
-            minColVal = DroneshowModifier.MinimumRowValue(M_DistanceAndAvailDrones[0])
             sol = DroneshowModifier.HungarianALG(M_DistanceAndAvailDrones[0])
-            checkedSol = DroneshowModifier.CheckSolution(sol, minColVal, M_DistanceAndAvailDrones[1], flaggedDrones) 
+            checkedSol = DroneshowModifier.CheckSolution(sol, M_DistanceAndAvailDrones[0], M_DistanceAndAvailDrones[1], flaggedDrones) 
             M_Drones = DroneshowModifier.UpdateMatrix(M_Drones, checkedSol, i)
             
        

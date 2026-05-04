@@ -57,5 +57,17 @@ class TestMain:
 
         assert result is not None
         assert len(result) == len(output)
+        #assert result == output
         
         
+        for drone_idx, (result_drone, expected_drone) in enumerate(zip(result, output)):
+            assert len(result_drone) == len(expected_drone), \
+                f"Drone {drone_idx}: expected {len(expected_drone)} points, got {len(result_drone)}"
+            
+            # Compare each point
+            for point_idx, (rp, ep) in enumerate(zip(result_drone, expected_drone)):
+                assert (rp.time_ms, rp.x, rp.y, rp.z, rp.r, rp.g, rp.b, rp.flag) == \
+                       (ep.time_ms, ep.x, ep.y, ep.z, ep.r, ep.g, ep.b, ep.flag), \
+                    f"Drone {drone_idx}, Point {point_idx} mismatch:\n" \
+                    f"  Got:      {(rp.time_ms, rp.x, rp.y, rp.z, rp.r, rp.g, rp.b, rp.flag)}\n" \
+                    f"  Expected: {(ep.time_ms, ep.x, ep.y, ep.z, ep.r, ep.g, ep.b, ep.flag)}"
