@@ -30,7 +30,13 @@ class DroneshowModifier:
         :param max_speed:
         :return:
         """
-        flaggable_list = droneshow
+        flaggable_list: list[list[DronePointFlaggable]] = []
+
+        for drone_path in droneshow:
+            flaggable_drone = []
+            for dp in drone_path:
+                flaggable_drone.append(dp.as_(DronePointFlaggable, flag=False))
+            flaggable_list.append(flaggable_drone)
 
         for drone in range(len(flaggable_list)):
             last_dp = None
@@ -44,15 +50,15 @@ class DroneshowModifier:
                     flaggable_list[drone][timeslot] = dp.as_(DronePointFlaggable, flag = False)
                     continue
 
-                last_dp = dp
 
                 dist_travelled = math_utils.distance(last_dp.get_location(), dp.get_location())
 
                 # Going too fast
                 time_elapsed_sec = dp.get_time_sec() - last_dp.get_time_sec()
-                if dist_travelled / time_elapsed_sec > max_speed:
+                if time_elapsed_sec != 0 and dist_travelled / time_elapsed_sec > max_speed:
                     flaggable_list[drone][timeslot] = dp.as_(DronePointFlaggable, flag = True)
 
+                last_dp = dp
         return flaggable_list
        
 
@@ -65,8 +71,7 @@ class DroneshowModifier:
         for i in range(len(drones[0])):
             drones[newDroneIndex][i] = None
 
-        return newDroneIndex # -------------------------------------------------------------------------------------------------------------------------- nye droner skal have None værdier
-
+        return newDroneIndex 
         
 
     @classmethod
@@ -133,14 +138,15 @@ class DroneshowModifier:
         matDiff = len(M_distance) - len(M_distance[flaggedDrones[0]])
 
         if matDiff < 0: #more drones than flags
-            for i in range(len(M_distance)+1,len(M_distance[0])):
-                np.append(M_distance, [BIG_NUMBER for _ in range(len(M_distance[0]))])
+            for i in range(len(M_distance),len(M_distance[0])):
+                dummyFlag = [BIG_NUMBER for _ in range(len(M_distance[0]))]
+                np.append(M_distance, dummyFlag)
 
         elif matDiff > 0: #more flags than drones
-            for i in range(len(M_distance[0]),len(M_distance)): # ---------------------------------------------------- fix squareness of matrix
+            for i in range(len(M_distance[0]),len(M_distance)): 
                 availableDrones.append(DroneshowModifier.CreateNewDrone(drones))
                 newDrone = [[0] for _ in range(len(M_distance)) ]
-                M_distance =  np.append(M_distance, newDrone, 1)
+                M_distance = np.append(M_distance, newDrone, 1)
         
         return M_distance, availableDrones
         
@@ -240,63 +246,6 @@ class DroneshowModifier:
 
         M_Drones = np.delete(M_Drones, getDeleted, 0)   
         return M_Drones            
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        """ 
-        getDeleted = []
-        
-        for i in range(len(M_Drones)): # drone
-            timeInterval = 1
-            for j in range(len(M_Drones[0])): # time
-                if M_Drones[i][j] == None :
-                    if timeInterval == 1:
-                        t = j+1
-                        while t < len(M_Drones[0]): 
-                            timeInterval = t-j-1
-                            if M_Drones[i][t] is not None:
-                                target = M_Drones[i][t]
-                                if j == 0:
-                                    start = target
-                                    M_Drones[i][j] = DronePointFlaggable(time_ms=0, x=M_Drones[i][t].x, y=M_Drones[i][t].y, z=M_Drones[i][t].z, r=0, g=0, b=0, flag=False)
-                                else:
-                                    start = M_Drones[i][j-1]
-                                 
-                                rx = (start.x - target.x)/(timeInterval+2)
-                                ry = (start.y - target.y)/(timeInterval+2)
-                                rz = (start.z - target.z)/(timeInterval+2)
-                                
-                                t = len(M_Drones[0])
-                            t += 1
-                    if t == len(M_Drones[0])+1:
-                        M_Drones[i][j] = DronePointFlaggable(time_ms=j*250, x=M_Drones[i][j-1].x-rx, y=M_Drones[i][j-1].y-ry, z=M_Drones[i][j-1].z-rz, r=0, g=0, b=0, flag=False)
-                        
-                        timeInterval -= 1
-                    
-                    elif t == len(M_Drones[0]):
-                        if j != 0:
-                            M_Drones[i][j] = DronePointFlaggable(time_ms=j*250, x=M_Drones[i][j-1].x, y=M_Drones[i][j-1].y, z=M_Drones[i][j-1].z, r=0, g=0, b=0, flag=False)
-                        else:
-                            getDeleted.append(i)
-                            print("Deleting drone", i)
-                    else:
-                        print("Fill Matrix calculations failed") # vores version af en error message
-                      
-            M_Drones = np.delete(M_Drones, getDeleted, 0)            
-        return M_Drones """
 
 
    
