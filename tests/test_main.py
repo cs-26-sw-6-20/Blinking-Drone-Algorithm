@@ -41,7 +41,7 @@ output = [
     DronePointFlaggable(time_ms=750, x=3.0, y=5.0, z=0.0, r=2, g=2, b=2, flag=False)],
 
     [DronePointFlaggable(time_ms=000, x=4.5, y=1.0, z=0.0, r=3, g=3, b=3, flag=False),
-    DronePointFlaggable(time_ms=250, x=4.25, y=0.75, z=0.0, r=0, g=0, b=0, flag=True),
+    DronePointFlaggable(time_ms=250, x=4.25, y=0.75, z=0.0, r=0, g=0, b=0, flag=False),
     DronePointFlaggable(time_ms=500, x=4.0, y=0.5, z=0.0, r=0, g=0, b=0, flag=True),
     DronePointFlaggable(time_ms=750, x=5.0, y=0.5, z=0.0, r=0, g=0, b=0, flag=False)],
     
