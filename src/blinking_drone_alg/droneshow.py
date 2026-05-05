@@ -38,9 +38,11 @@ class DroneshowModifier:
 
                 dist_travelled = math_utils.distance(last_dp.get_location(), dp.get_location())
 
-                # Going too fast
                 time_elapsed_sec = dp.get_time_sec() - last_dp.get_time_sec()
-                if dist_travelled / time_elapsed_sec > max_speed:
+                velocity = dist_travelled / time_elapsed_sec
+
+                # Going too fast
+                if velocity > max_speed:
                     flaggable_list[drone][timeslot] = dp.as_(DronePointFlaggable, flag = True)
 
         return flaggable_list
