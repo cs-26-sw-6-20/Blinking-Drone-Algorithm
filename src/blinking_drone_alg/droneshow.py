@@ -196,6 +196,67 @@ class DroneshowModifier:
     
     @classmethod
     def FillMatrix(cls, M_Drones: list[list[DronePointFlaggable]]) -> list[list[DronePointFlaggable]]:
+        
+        getDeleted = []
+
+        for i in range(len(M_Drones)): # drones
+            for j in range(len(M_Drones[0])): # time
+                if (M_Drones[i][j]) is None:
+                    for t in range(j+1,len(M_Drones[0])):
+                        if (M_Drones[i][t]) is not None:
+                            if j == 0:
+                                case = 1
+                                break
+                            else:
+                                case = 2
+                                break
+                        else:
+                            if j == 0:
+                                case = 3
+                            else:
+                                case = 4
+                    if case == 1:
+                        for k in range(j, t):
+                            M_Drones[i][k] = DronePointFlaggable(time_ms=250*k, x=M_Drones[i][t].x, y=M_Drones[i][t].y, z=M_Drones[i][t].z, r=0, g=0, b=0, flag=False)
+                        j = t
+                        case = 0
+                    elif case == 2:
+                        rx = (M_Drones[i][j-1].x - M_Drones[i][t].x)/(t-j+1)
+                        ry = (M_Drones[i][j-1].y - M_Drones[i][t].y)/(t-j+1)
+                        rz = (M_Drones[i][j-1].z - M_Drones[i][t].z)/(t-j+1)
+                        for k in range(j, t):
+                            M_Drones[i][k] = DronePointFlaggable(time_ms=250*k, x=M_Drones[i][k-1].x-rx, y=M_Drones[i][k-1].y-ry, z=M_Drones[i][k-1].z-rz, r=0, g=0, b=0, flag=False)
+                        j = t
+                        case = 0
+                    elif case == 3:
+                        getDeleted.append(i)
+                        case = 0
+                    elif case == 4:
+                        for k in range(j, len(M_Drones[0])):
+                            M_Drones[i][k] = DronePointFlaggable(time_ms=250*k, x=M_Drones[i][j-1].x, y=M_Drones[i][j-1].y, z=M_Drones[i][j-1].z, r=0, g=0, b=0, flag=False)
+                        case = 0
+                    else:
+                        case = 0        
+
+        M_Drones = np.delete(M_Drones, getDeleted, 0)   
+        return M_Drones            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        """ 
         getDeleted = []
         
         for i in range(len(M_Drones)): # drone
@@ -213,23 +274,18 @@ class DroneshowModifier:
                                     M_Drones[i][j] = DronePointFlaggable(time_ms=0, x=M_Drones[i][t].x, y=M_Drones[i][t].y, z=M_Drones[i][t].z, r=0, g=0, b=0, flag=False)
                                 else:
                                     start = M_Drones[i][j-1]
+                                 
+                                rx = (start.x - target.x)/(timeInterval+2)
+                                ry = (start.y - target.y)/(timeInterval+2)
+                                rz = (start.z - target.z)/(timeInterval+2)
                                 
-                                
-                                if timeInterval != 0:
-                                    rx = (start.x - target.x)/timeInterval
-                                    ry = (start.y - target.y)/timeInterval
-                                    rz = (start.z - target.z)/timeInterval
-                                else:
-                                    rx = (start.x - target.x)
-                                    ry = (start.y - target.y)
-                                    rz = (start.z - target.z)
-
                                 t = len(M_Drones[0])
                             t += 1
                     if t == len(M_Drones[0])+1:
-                        M_Drones[i][j] = DronePointFlaggable(time_ms=j*250, x=M_Drones[i][j-1].x+rx, y=M_Drones[i][j-1].y+ry, z=M_Drones[i][j-1].z+rz, r=0, g=0, b=0, flag=False)
-
+                        M_Drones[i][j] = DronePointFlaggable(time_ms=j*250, x=M_Drones[i][j-1].x-rx, y=M_Drones[i][j-1].y-ry, z=M_Drones[i][j-1].z-rz, r=0, g=0, b=0, flag=False)
+                        
                         timeInterval -= 1
+                    
                     elif t == len(M_Drones[0]):
                         if j != 0:
                             M_Drones[i][j] = DronePointFlaggable(time_ms=j*250, x=M_Drones[i][j-1].x, y=M_Drones[i][j-1].y, z=M_Drones[i][j-1].z, r=0, g=0, b=0, flag=False)
@@ -240,7 +296,7 @@ class DroneshowModifier:
                         print("Fill Matrix calculations failed") # vores version af en error message
                       
             M_Drones = np.delete(M_Drones, getDeleted, 0)            
-        return M_Drones
+        return M_Drones """
 
 
    
