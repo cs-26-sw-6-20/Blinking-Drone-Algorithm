@@ -1,10 +1,8 @@
 import logging
 from dataclasses import dataclass
-from shutil import copy
-from turtle import distance
+import copy
 import numpy as np
 from scipy.optimize import linear_sum_assignment
-import copy
 
 from blinking_drone_alg import math_utils
 from blinking_drone_alg.droneshow_serializer import DronePoint
@@ -20,8 +18,6 @@ class DronePointFlaggable(DronePoint):
 
 class DroneshowModifier:
     logger = logging.getLogger(__name__)
-
-    
 
     @classmethod
     def flag_droneshow(cls, droneshow: list[list[DronePoint]], max_speed: float) -> list[list[DronePointFlaggable]]:
@@ -90,7 +86,7 @@ class DroneshowModifier:
         
 
     @classmethod
-    def DistanceMatrix(cls, drones: list[list[DronePointFlaggable]], flaggedDrones: list[int], time_index: int) -> list[list[float]]:
+    def DistanceMatrix(cls, drones: list[list[DronePointFlaggable]], flaggedDrones: list[int], time_index: int) -> tuple[list[list[float]], list[int]]:
         
         M_distance: list[list[float]] = []
 
@@ -201,75 +197,75 @@ class DroneshowModifier:
         return M_Drones
     
     @classmethod
-    def FillMatrix(cls, M_Drones: list[list[DronePointFlaggable]]) -> list[list[DronePointFlaggable]]:
+    def fill_matrix(cls, drone_matrix: list[list[DronePointFlaggable]]) -> list[list[DronePointFlaggable]]:
         
-        getDeleted = []
+        get_deleted = []
 
-        for i in range(len(M_Drones)): # drones
-            for j in range(len(M_Drones[0])): # time
-                if (M_Drones[i][j]) is None:
-                    for t in range(j+1,len(M_Drones[0])):
-                        if (M_Drones[i][t]) is not None:
-                            if j == 0:
+        for i in range(len(drone_matrix)): # drones
+            time_index = 0
+            while time_index < len(drone_matrix[0]): # time
+                case = 0
+                if (drone_matrix[i][time_index]) is None:
+                    start_dp = time_index-1
+                    none_index = time_index
+                    target_dp = 0
+                    for t in range(none_index+1, len(drone_matrix[0])):
+                        target_dp = t
+                        if (drone_matrix[i][t]) is not None:
+                            if none_index == 0: # Case 1
                                 case = 1
                                 break
                             else:
                                 case = 2
                                 break
                         else:
-                            if j == 0:
+                            if none_index == 0:
                                 case = 3
                             else:
                                 case = 4
                     if case == 1:
-                        for k in range(j, t):
-                            M_Drones[i][k] = DronePointFlaggable(time_ms=250*k, x=M_Drones[i][t].x, y=M_Drones[i][t].y, z=M_Drones[i][t].z, r=0, g=0, b=0, flag=False)
-                        j = t
-                        case = 0
+                        for k in range(none_index, target_dp):
+                            drone_matrix[i][k] = DronePointFlaggable(time_ms=250 * k, x=drone_matrix[i][target_dp].x, y=drone_matrix[i][target_dp].y, z=drone_matrix[i][target_dp].z, r=0, g=0, b=0, flag=False)
+                        time_index = target_dp
                     elif case == 2:
-                        rx = (M_Drones[i][j-1].x - M_Drones[i][t].x)/(t-j+1)
-                        ry = (M_Drones[i][j-1].y - M_Drones[i][t].y)/(t-j+1)
-                        rz = (M_Drones[i][j-1].z - M_Drones[i][t].z)/(t-j+1)
-                        for k in range(j, t):
-                            M_Drones[i][k] = DronePointFlaggable(time_ms=250*k, x=M_Drones[i][k-1].x-rx, y=M_Drones[i][k-1].y-ry, z=M_Drones[i][k-1].z-rz, r=0, g=0, b=0, flag=False)
-                        j = t
-                        case = 0
+                        rx = (drone_matrix[i][start_dp].x - drone_matrix[i][target_dp].x) / (target_dp - start_dp)
+                        ry = (drone_matrix[i][start_dp].y - drone_matrix[i][target_dp].y) / (target_dp - start_dp)
+                        rz = (drone_matrix[i][start_dp].z - drone_matrix[i][target_dp].z) / (target_dp - start_dp)
+                        for k in range(none_index, target_dp):
+                            drone_matrix[i][k] = DronePointFlaggable(time_ms=250 * k, x=drone_matrix[i][k - 1].x - rx, y=drone_matrix[i][k - 1].y - ry, z=drone_matrix[i][k - 1].z - rz, r=0, g=0, b=0, flag=False)
+                        time_index = target_dp
                     elif case == 3:
-                        getDeleted.append(i)
-                        case = 0
+                        get_deleted.append(i)
                     elif case == 4:
-                        for k in range(j, len(M_Drones[0])):
-                            M_Drones[i][k] = DronePointFlaggable(time_ms=250*k, x=M_Drones[i][j-1].x, y=M_Drones[i][j-1].y, z=M_Drones[i][j-1].z, r=0, g=0, b=0, flag=False)
-                        case = 0
-                    else:
-                        case = 0        
+                        for k in range(none_index, len(drone_matrix[0])):
+                            drone_matrix[i][k] = DronePointFlaggable(time_ms=250 * k, x=drone_matrix[i][start_dp].x, y=drone_matrix[i][start_dp].y, z=drone_matrix[i][start_dp].z, r=0, g=0, b=0, flag=False)
+                time_index += 1
 
-        M_Drones = np.delete(M_Drones, getDeleted, 0)   
-        return M_Drones            
 
+        drone_matrix = np.delete(drone_matrix, get_deleted, 0)
+        return drone_matrix
 
    
     @classmethod
-    def not_main(cls, M_Drones: list[list[DronePointFlaggable]]) -> list[list[DronePointFlaggable]]:
+    def not_main(cls, drone_matrix: list[list[DronePointFlaggable]]) -> list[list[DronePointFlaggable]]:
         # Create time x Drone Matrix with flags
 
-        for i in range(len(M_Drones[0])):
-            flaggedDrones = []
-            for j in range(len(M_Drones)):
-                if M_Drones[j][i] is not None:
-                    if M_Drones[j][i].flag:
-                        flaggedDrones.append(j)
-            if (flaggedDrones == []):
+        for i in range(len(drone_matrix[0])):
+            flagged_drones = []
+            for j in range(len(drone_matrix)):
+                if drone_matrix[j][i] is not None:
+                    if drone_matrix[j][i].flag:
+                        flagged_drones.append(j)
+            if len(flagged_drones) == 0:
                 continue
             
-            M_DistanceAndAvailDrones = DroneshowModifier.DistanceMatrix(M_Drones, flaggedDrones, i)
-            sol = DroneshowModifier.HungarianALG(M_DistanceAndAvailDrones[0])
-            checkedSol = DroneshowModifier.CheckSolution(sol, M_DistanceAndAvailDrones[0], M_DistanceAndAvailDrones[1], flaggedDrones) 
-            M_Drones = DroneshowModifier.UpdateMatrix(M_Drones, checkedSol, i)
-            
+            distance_matrix, avail_drones = DroneshowModifier.DistanceMatrix(drone_matrix, flagged_drones, i)
+            sol = DroneshowModifier.HungarianALG(distance_matrix)
+            checked_sol = DroneshowModifier.CheckSolution(sol, distance_matrix, avail_drones, flagged_drones)
+            drone_matrix = DroneshowModifier.UpdateMatrix(drone_matrix, checked_sol, i)
        
-        M_Drones = DroneshowModifier.FillMatrix(M_Drones)
-        return M_Drones
+        drone_matrix = DroneshowModifier.fill_matrix(drone_matrix)
+        return drone_matrix
         # Make MDrones into CSV files
         # Count amount of drones
         # Return CSV files and global drone counter value
