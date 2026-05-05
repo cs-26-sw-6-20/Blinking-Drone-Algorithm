@@ -1,4 +1,7 @@
 from dataclasses import dataclass, replace, fields
+from typing import TypeVar, Type
+
+T = TypeVar('T')
 
 
 class WithMixin:
@@ -10,7 +13,7 @@ class WithMixin:
         """
         return replace(self, **kwargs)
 
-    def as_(self, cls, **kwargs):
+    def as_(self, cls: Type[T], **kwargs) -> T:
         """
         Mutates specific fields of a copy of the object, into a new class with similar fields.
         :param cls: The target class

@@ -43,6 +43,7 @@ class DroneshowModifier:
 
                 # Going too fast
                 if velocity > max_speed:
-                    flaggable_list[drone][timeslot] = dp.as_(DronePointFlaggable, flag = True)
+                    dpf = dp.as_(DronePointFlaggable, flag = True)
+                    flaggable_list[drone][timeslot] = dpf
 
         return flaggable_list
