@@ -5,7 +5,7 @@ import tempfile
 from pathlib import Path
 import logging
 
-from mixins import WithMixin
+from blinking_drone_alg.mixins import WithMixin
 
 @dataclass
 class DronePoint(WithMixin):

@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 
 from blinking_drone_alg.droneshow_serializer import DronePoint
-from src.blinking_drone_alg import math_utils
+import blinking_drone_alg.math_utils
 
 
 @dataclass
