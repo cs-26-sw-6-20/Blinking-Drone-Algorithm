@@ -13,7 +13,7 @@ class TestHungarianAlg:
           
         expectedOutput = [(0,1),(1,2),(2,0)]
         
-        result = DroneshowModifier.HungarianALG(distance_matrix)
+        result = DroneshowModifier.hungarian_alg(distance_matrix)
 
         assert len(result) == len(expectedOutput)
         assert result == expectedOutput

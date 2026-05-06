@@ -23,6 +23,10 @@ def main():
     flagged_drones = DroneshowModifier.flag_droneshow(droneshowPoints,max_speed)  
     print(flagged_drones)
     MDrone = DroneshowModifier.not_main(flagged_drones)
+
+    # Make MDrones into CSV files
+    # Count amount of drones
+    # Return CSV files and global drone counter value
     
     
     print(f"Original number of drones: {len(droneshowPoints)}")
