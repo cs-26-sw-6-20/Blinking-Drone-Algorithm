@@ -189,57 +189,87 @@ class DroneshowModifier:
                 drone_matrix[checked_sol[j][0]][i] = insert_drone[i]
 
         return drone_matrix
-    
+
+    @classmethod
+    def extrapolate_drone_path(cls, drone: list[Optional[DronePointFlaggable]], start: DronePoint, end: DronePoint, start_index: int, end_index: int) -> None:
+        for k in range(0, end_index - start_index):
+            frame = start_index + k
+
+            t = (k + 1) / (end_index - start_index + 1)
+
+            location = DronePoint.interpolate_location(
+                start,
+                end,
+                t)
+
+            drone[frame] = DronePointFlaggable(
+                time_ms=250 * frame,
+                x=location[0],
+                y=location[1],
+                z=location[2],
+                r=0, g=0, b=0, flag=False)
+
     @classmethod
     def fill_matrix(cls, drone_matrix: list[list[Optional[DronePointFlaggable]]]) -> list[list[DronePointFlaggable]]:
         
         get_deleted = []
 
         for i in range(len(drone_matrix)): # drones
-            time_index = 0
-            while time_index < len(drone_matrix[0]): # time
-                case = 0
-                if (drone_matrix[i][time_index]) is None:
-                    start_dp = time_index-1
-                    none_index = time_index
-                    target_dp = 0
-                    for t in range(none_index+1, len(drone_matrix[0])):
-                        target_dp = t
-                        if (drone_matrix[i][t]) is not None:
-                            if none_index == 0: # Case 1
-                                case = 1
-                                break
-                            else:
-                                case = 2
-                                break
-                        else:
-                            if none_index == 0:
-                                case = 3
-                            else:
-                                case = 4
-                    if case == 1:
-                        for k in range(none_index, target_dp):
-                            drone_matrix[i][k] = DronePointFlaggable(time_ms=250 * k, x=drone_matrix[i][target_dp].x, y=drone_matrix[i][target_dp].y, z=drone_matrix[i][target_dp].z, r=0, g=0, b=0, flag=False)
-                        time_index = target_dp
-                    elif case == 2:
-                        rx = (drone_matrix[i][start_dp].x - drone_matrix[i][target_dp].x) / (target_dp - start_dp)
-                        ry = (drone_matrix[i][start_dp].y - drone_matrix[i][target_dp].y) / (target_dp - start_dp)
-                        rz = (drone_matrix[i][start_dp].z - drone_matrix[i][target_dp].z) / (target_dp - start_dp)
-                        for k in range(none_index, target_dp):
-                            drone_matrix[i][k] = DronePointFlaggable(time_ms=250 * k, x=drone_matrix[i][k - 1].x - rx, y=drone_matrix[i][k - 1].y - ry, z=drone_matrix[i][k - 1].z - rz, r=0, g=0, b=0, flag=False)
-                        time_index = target_dp
-                    elif case == 3:
-                        get_deleted.append(i)
-                    elif case == 4:
-                        for k in range(none_index, len(drone_matrix[0])):
-                            drone_matrix[i][k] = DronePointFlaggable(time_ms=250 * k, x=drone_matrix[i][start_dp].x, y=drone_matrix[i][start_dp].y, z=drone_matrix[i][start_dp].z, r=0, g=0, b=0, flag=False)
-                time_index += 1
+            drone: list[Optional[DronePointFlaggable]] = drone_matrix[i]
+            first_none_index: int = 0
+            last_known_position: Optional[DronePointFlaggable] = None
+            last_position: Optional[DronePointFlaggable] = drone[0]
+            current_position: Optional[DronePointFlaggable] = None
+
+            for frame in range(1, len(drone)): # time
+                current_position = drone[frame]
+
+                # Hasn't changed
+                if (current_position is None) == (last_position is None):
+                    last_position = current_position
+                    continue
+
+                # It is now none
+                if current_position is None:
+                    first_none_index = frame
+                    last_known_position = last_position
+                    last_position = current_position
+                    continue
+
+                # it is not none anymore
+                if last_known_position is None:
+                    last_known_position = current_position
+
+                cls.extrapolate_drone_path(
+                    drone,
+                    last_known_position,
+                    current_position,
+                    first_none_index,
+                    frame
+                )
+                last_position = drone[frame]
 
 
-        drone_matrix = np.delete(drone_matrix, get_deleted, 0)
-        return drone_matrix
+            # The rest of the drone is unused
+            if current_position is None:
 
-   
+                # Drone is completely unused
+                if last_known_position is None:
+                    get_deleted.append(i)
+                    continue
+
+                cls.extrapolate_drone_path(
+                    drone,
+                    last_known_position,
+                    last_known_position,
+                    first_none_index,
+                    len(drone)
+                )
+                continue
+
+        drone_matrix_np = np.delete(np.array(drone_matrix), get_deleted, 0)
+        return drone_matrix_np.tolist()
+
     @classmethod
     def not_main(cls, drone_matrix: list[list[DronePointFlaggable]]) -> list[list[DronePointFlaggable]]:
         # Create time x Drone Matrix with flags
