@@ -23,6 +23,14 @@ class DronePoint(WithMixin):
     def get_time_sec(self) -> float:
         return self.time_ms / 1000.0
 
+    @staticmethod
+    def interpolate_location(p1: "DronePoint", p2: "DronePoint", t: float) -> tuple[float, float, float]:
+        """Interpolate between two DronePoints at a given timestamp."""
+        return (
+            p1.x + (p2.x - p1.x) * t,
+            p1.y + (p2.y - p1.y) * t,
+            p1.z + (p2.z - p1.z) * t,
+        )
 
 class DroneshowParser:
     logger = logging.getLogger(__name__)
