@@ -144,7 +144,7 @@ class DroneshowModifier:
                 new_drone = [[0] for _ in range(len(distance_matrix_np)) ]
                 distance_matrix_np = np.append(distance_matrix_np, new_drone, 1)
 
-        return distance_matrix_np.getlist(), available_drones
+        return distance_matrix_np, available_drones
 
     @classmethod
     def hungarian_alg(cls, distance_matrix: list[list[float]]) -> list[tuple[int, int]]:
