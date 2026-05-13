@@ -11,7 +11,6 @@ from blinking_drone_alg.droneshow_serializer import DronePoint
 from blinking_drone_alg.constants import MAX_ALLOWED_DISTANCE, BIG_NUMBER
 
 
-
 @dataclass
 class DronePointFlaggable(DronePoint):
     flag: bool = False
@@ -50,25 +49,28 @@ class DroneshowModifier:
 
                 dist_travelled = math_utils.distance(last_dp.get_location(), dp.get_location())
 
-                # Going too fast
                 time_elapsed_sec = dp.get_time_sec() - last_dp.get_time_sec()
-                if time_elapsed_sec != 0 and dist_travelled / time_elapsed_sec > max_speed:
-                    flaggable_list[drone][timeslot] = dp.as_(DronePointFlaggable, flag = True)
+                velocity = dist_travelled / time_elapsed_sec
+
+                # Going too fast
+                if velocity > max_speed:
+                    dpf = dp.as_(DronePointFlaggable, flag = True)
+                    flaggable_list[drone][timeslot] = dpf
 
                 last_dp = dp
         return flaggable_list
-       
+
 
     @classmethod
     def create_new_drone(cls, drones: list[list[Optional[DronePointFlaggable]]]) -> int:
         new_drone_index = len(drones)
-        
+
         drones.append([DronePointFlaggable(time_ms=i*250, x=0.0, y=0.0, z=0.0, r=0, g=0, b=0, flag=False) for i in range(len(drones[0]))])
         for i in range(len(drones[0])):
             drones[new_drone_index][i] = None
 
         return new_drone_index
-        
+
 
     @classmethod
     def dist_calc(cls, flag: list[Optional[DronePointFlaggable]], avail: list[Optional[DronePointFlaggable]], time_index: int) -> float:
@@ -76,13 +78,13 @@ class DroneshowModifier:
             if avail[time_index-i-1] is not None:
                 total_distance = math_utils.distance(flag[time_index].get_location(), avail[time_index-i-1].get_location())
                 diff = i * MAX_ALLOWED_DISTANCE
-                
+
                 if (total_distance - diff) < 0:
                     return 0
                 else:
                     return total_distance - diff
-        return 0    
-        
+        return 0
+
 
     @classmethod
     def distance_matrix_alg(cls, drones: list[list[Optional[DronePointFlaggable]]], flagged_drones: list[int], time_index: int) -> tuple[list[list[float]], list[int]]:
@@ -96,7 +98,7 @@ class DroneshowModifier:
             for j in range(len(drones)):
                 if j not in available_drones:
                     available_drones.append(j)
-               
+
                 distance = DroneshowModifier.dist_calc(drones[flagged_drones[i]], drones[j], time_index)
                 if distance <= MAX_ALLOWED_DISTANCE:
                     if j not in flagged_drones and drones[j][time_index] is not None:
@@ -105,7 +107,7 @@ class DroneshowModifier:
                     distance_matrix[i][j]  = distance
                 else:
                     distance_matrix[i][j]  = BIG_NUMBER
-            i +=1     
+            i +=1
 
         get_deleted = []
 
@@ -117,7 +119,7 @@ class DroneshowModifier:
                     break
             if not skip:
                 get_deleted.append(available_drones[i])
-        
+
 
         distance_matrix = np.array(distance_matrix)
 
@@ -125,7 +127,7 @@ class DroneshowModifier:
             distance_matrix = np.delete(distance_matrix, get_deleted[i-1], 1)
 
             available_drones.pop(get_deleted[i-1])
-        
+
         mat_diff = len(distance_matrix) - len(distance_matrix[flagged_drones[0]])
 
         if mat_diff < 0: #more drones than flags
@@ -138,9 +140,9 @@ class DroneshowModifier:
                 available_drones.append(DroneshowModifier.create_new_drone(drones))
                 new_drone = [[0] for _ in range(len(distance_matrix)) ]
                 distance_matrix = np.append(distance_matrix, new_drone, 1)
-        
+
         return distance_matrix, available_drones
-        
+
 
     @classmethod
     def hungarian_alg(cls, distance_matrix: list[list[float]]) -> list[tuple[int, int]]:
@@ -167,7 +169,7 @@ class DroneshowModifier:
                 available.append(new_drone_index)
 
         return checked_sol
-    
+
     @classmethod
     def update_matrix(cls, drone_matrix: list[list[Optional[DronePointFlaggable]]], checked_sol: list[tuple[int, int]], time_index: int) -> list[list[Optional[DronePointFlaggable]]]:
         copies: list[tuple[list[Optional[DronePointFlaggable]],list[Optional[DronePointFlaggable]]]] = []
@@ -175,9 +177,9 @@ class DroneshowModifier:
         for sol in checked_sol:
             avail = copy.deepcopy(drone_matrix[sol[0]])
             flag = copy.deepcopy(drone_matrix[sol[1]])
-          
+
             copies.append((avail, flag))
-       
+
         for j in range(len(checked_sol)):
             for i in range(time_index, len(drone_matrix[0])):
                 _, flagged = checked_sol[j]
@@ -211,7 +213,7 @@ class DroneshowModifier:
 
     @classmethod
     def fill_matrix(cls, drone_matrix: list[list[Optional[DronePointFlaggable]]]) -> list[list[DronePointFlaggable]]:
-        
+
         get_deleted = []
 
         for i in range(len(drone_matrix)): # drones
@@ -283,10 +285,10 @@ class DroneshowModifier:
                         flagged_drones.append(j)
             if len(flagged_drones) == 0:
                 continue
-            
+
             distance_matrix, avail_drones = DroneshowModifier.distance_matrix_alg(drone_matrix_temp, flagged_drones, i)
             sol = DroneshowModifier.hungarian_alg(distance_matrix)
             checked_sol = DroneshowModifier.check_solution(drone_matrix_temp, sol, distance_matrix, avail_drones, flagged_drones)
             drone_matrix_temp = DroneshowModifier.update_matrix(drone_matrix_temp, checked_sol, i)
-       
+
         return DroneshowModifier.fill_matrix(drone_matrix_temp)
