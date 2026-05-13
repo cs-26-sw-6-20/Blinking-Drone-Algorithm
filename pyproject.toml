@@ -39,10 +39,6 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=9.0.3",
-    "mypy>=1.1.1"
-]
-
-[dependency-groups]
-dev = [
+    "mypy>=1.1.1",
     "scipy-stubs>=1.15.3.0",
 ]

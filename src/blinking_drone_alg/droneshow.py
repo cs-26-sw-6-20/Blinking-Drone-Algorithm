@@ -86,6 +86,9 @@ class DroneshowModifier:
         return 0
 
 
+    # step 1: calculate cost matrix for 1 timeframe to another.
+    # step 2: flag all costs that are too high
+    # step 3:
     @classmethod
     def distance_matrix_alg(cls, drones: list[list[Optional[DronePointFlaggable]]], flagged_drones: list[int], time_index: int) -> tuple[list[list[float]], list[int]]:
         distance_matrix: list[list[float]] = []
@@ -93,6 +96,7 @@ class DroneshowModifier:
         flag_list_length = len(flagged_drones)
         available_drones = []
         i = 0
+
         while i < flag_list_length:
             distance_matrix.append([BIG_NUMBER for _ in range(len(drones))])
             for j in range(len(drones)):
@@ -111,38 +115,36 @@ class DroneshowModifier:
 
         get_deleted = []
 
-        for i in range(len(distance_matrix[0])): # drone
+        for i in range(len(distance_matrix[0])):
             skip = False
-            for j in range(len(distance_matrix)): # flag
+            for j in range(len(distance_matrix)):
                 if distance_matrix[j][i] != BIG_NUMBER:
                     skip = True
                     break
             if not skip:
                 get_deleted.append(available_drones[i])
 
-
-        distance_matrix = np.array(distance_matrix)
+        distance_matrix_np = np.array(distance_matrix)
 
         for i in range(len(get_deleted), 0,-1):
-            distance_matrix = np.delete(distance_matrix, get_deleted[i-1], 1)
+            distance_matrix_np = np.delete(distance_matrix_np, get_deleted[i-1], 1)
 
             available_drones.pop(get_deleted[i-1])
-
-        mat_diff = len(distance_matrix) - len(distance_matrix[flagged_drones[0]])
+        
+        mat_diff = len(distance_matrix_np) - len(distance_matrix_np[flagged_drones[0]])
 
         if mat_diff < 0: #more drones than flags
-            for i in range(len(distance_matrix),len(distance_matrix[0])):
-                dummy_flag = [BIG_NUMBER for _ in range(len(distance_matrix[0]))]
-                np.append(distance_matrix, dummy_flag)
+            for i in range(len(distance_matrix_np),len(distance_matrix_np[0])):
+                dummy_flag = [BIG_NUMBER for _ in range(len(distance_matrix_np[0]))]
+                np.append(distance_matrix_np, dummy_flag)
 
         elif mat_diff > 0: #more flags than drones
-            for i in range(len(distance_matrix[0]),len(distance_matrix)):
+            for i in range(len(distance_matrix_np[0]),len(distance_matrix_np)):
                 available_drones.append(DroneshowModifier.create_new_drone(drones))
-                new_drone = [[0] for _ in range(len(distance_matrix)) ]
-                distance_matrix = np.append(distance_matrix, new_drone, 1)
+                new_drone = [[0] for _ in range(len(distance_matrix_np)) ]
+                distance_matrix_np = np.append(distance_matrix_np, new_drone, 1)
 
-        return distance_matrix, available_drones
-
+        return distance_matrix_np.getlist(), available_drones
 
     @classmethod
     def hungarian_alg(cls, distance_matrix: list[list[float]]) -> list[tuple[int, int]]:
@@ -213,7 +215,6 @@ class DroneshowModifier:
 
     @classmethod
     def fill_matrix(cls, drone_matrix: list[list[Optional[DronePointFlaggable]]]) -> list[list[DronePointFlaggable]]:
-
         get_deleted = []
 
         for i in range(len(drone_matrix)): # drones

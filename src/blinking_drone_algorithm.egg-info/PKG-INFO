@@ -14,6 +14,7 @@ Classifier: Programming Language :: Python :: 3 :: Only
 Requires-Python: >=3.10
 Description-Content-Type: text/markdown
 Requires-Dist: numpy>=2.2.6
+Requires-Dist: pytest>=9.0.3
 Requires-Dist: scipy>=1.15.3
 Provides-Extra: dev
 Requires-Dist: pytest>=9.0.3; extra == "dev"
