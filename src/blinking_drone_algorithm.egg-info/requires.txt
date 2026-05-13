@@ -1,6 +1,5 @@
 numpy>=2.2.6
 scipy>=1.15.3
-scipy-stubs>=1.15.3.0
 
 [dev]
 pytest>=9.0.3

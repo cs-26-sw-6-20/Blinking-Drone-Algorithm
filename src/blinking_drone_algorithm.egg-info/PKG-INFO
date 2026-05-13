@@ -15,7 +15,6 @@ Requires-Python: >=3.10
 Description-Content-Type: text/markdown
 Requires-Dist: numpy>=2.2.6
 Requires-Dist: scipy>=1.15.3
-Requires-Dist: scipy-stubs>=1.15.3.0
 Provides-Extra: dev
 Requires-Dist: pytest>=9.0.3; extra == "dev"
 Requires-Dist: mypy>=1.1.1; extra == "dev"
